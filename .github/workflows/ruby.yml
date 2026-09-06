@@ -5,8 +5,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SECRETS_TOKEN: ${{ secrets.PAT }}
   GITHUB_TOKEN: ${{ secrets.PAT }}
+  SECRETS_TOKEN: ${{ secrets.PAT }}
 
 on:
   push:
@@ -49,9 +49,11 @@ jobs:
       - name: Test Terraform Config
         env:
           TF_VAR_pat: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        timeout-minutes: 2
         run: |
           terraform validate
-          terraform plan -no-color -out tfplan
+          terraform plan -no-color -refresh=false -out tfplan
           PLAN=$(terraform show -json tfplan)
           bash -e .github/tests/test/tests.sh "$PLAN" .github/tests/test/test_cases.txt
 
@@ -68,5 +70,5 @@ jobs:
           TOKEN: ${{ steps.my-app.outputs.token }}
           SECRETS_TOKEN: ${{ secrets.PAT }}
         working-directory: '.github/tests'
-        run: 
+        run:
           ruby test/script_test.rb
