@@ -36,15 +36,21 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Test Terraform Config
+      - name: Terraform Apply
         env:
           TF_VAR_pat: ${{ secrets.PAT }}
         run: |
           terraform validate
           terraform plan -no-color -out tfplan
+          terraform apply -auto-approve tfplan
+
+      - name: Test Terraform Config
+        env:
+          TF_VAR_pat: ${{ secrets.PAT }}
+        run: |
           PLAN=$(terraform show -json tfplan)
           bash -e .github/tests/test/tests.sh "$PLAN" .github/tests/test/test_cases.txt
-
+     
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
