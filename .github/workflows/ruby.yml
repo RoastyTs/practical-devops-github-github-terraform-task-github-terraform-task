@@ -1,8 +1,5 @@
 name: Ruby
-
 env:
-  SECRETS_TOKEN: ${{ secrets.PAT }}
-  TF_VAR_pat: ${{ secrets.PAT }}
   GITHUB_TOKEN: ${{ secrets.PAT }}
 
 on:
@@ -15,7 +12,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Install my-app token
         id: my-app
@@ -28,7 +24,7 @@ jobs:
 
       - name: Write code to file
         run: |
-          cat << EOTFC > main.tf
+          cat << 'EOTFC' > main.tf
           ${{ secrets.TERRAFORM }}
           EOTFC
 
