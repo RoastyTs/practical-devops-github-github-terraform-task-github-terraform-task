@@ -41,6 +41,8 @@ jobs:
         run: terraform init
 
       - name: Test Terraform Config
+        env:
+          TF_VAR_pat: ${{ secrets.PAT }}
         run: |
           terraform validate
           terraform plan -no-color -out tfplan
