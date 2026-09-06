@@ -1,10 +1,18 @@
 name: Ruby
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   GITHUB_TOKEN: ${{ secrets.PAT }}
 
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '.github/CODEOWNERS'
+      - '.github/pull_request_template.md'
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
@@ -19,23 +27,18 @@ jobs:
         with:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
-
       - uses: actions/checkout@v5
-
       - name: Write code to file
         run: |
           cat << 'EOTFC' > main.tf
           ${{ secrets.TERRAFORM }}
           EOTFC
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
-
       - name: Terraform Init
         run: terraform init
-
       - name: Terraform Apply
         env:
           TF_VAR_pat: ${{ secrets.PAT }}
@@ -43,25 +46,23 @@ jobs:
           terraform validate
           terraform plan -no-color -out tfplan
           terraform apply -auto-approve tfplan
-
       - name: Test Terraform Config
         env:
           TF_VAR_pat: ${{ secrets.PAT }}
         run: |
           PLAN=$(terraform show -json tfplan)
           bash -e .github/tests/test/tests.sh "$PLAN" .github/tests/test/test_cases.txt
-     
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           working-directory: '.github/tests'
           bundler-cache: true
-
       - name: Run tests
         env:
           URL: ${{ github.repository }}
           TOKEN: ${{ steps.my-app.outputs.token }}
+          SECRETS_TOKEN: ${{ secrets.PAT }}
         working-directory: '.github/tests'
         run:
           ruby test/script_test.rb
