@@ -2,6 +2,8 @@ name: Ruby
 
 env:
   SECRETS_TOKEN: ${{ secrets.PAT }}
+  TF_VAR_pat: ${{ secrets.PAT }}
+  GITHUB_TOKEN: ${{ secrets.PAT }}
 
 on:
   push:
@@ -12,8 +14,16 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+
     steps:
+      - name: Install my-app token
+        id: my-app
+        uses: getsentry/action-github-app-token@v3
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v5
 
       - name: Write code to file
@@ -29,9 +39,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
 
       - name: Test Terraform Config
         run: |
@@ -50,6 +57,7 @@ jobs:
       - name: Run tests
         env:
           URL: ${{ github.repository }}
-          TOKEN: ${{ secrets.PAT }}
+          TOKEN: ${{ steps.my-app.outputs.token }}
         working-directory: '.github/tests'
-        run: ruby test/script_test.rb
+        run:
+          ruby test/script_test.rb
