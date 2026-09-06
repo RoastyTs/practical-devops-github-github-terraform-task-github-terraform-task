@@ -49,8 +49,6 @@ jobs:
       - name: Test Terraform Config
         env:
           TF_VAR_pat: ${{ secrets.PAT }}
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        timeout-minutes: 2
         run: |
           terraform validate
           terraform plan -no-color -refresh=false -out tfplan
