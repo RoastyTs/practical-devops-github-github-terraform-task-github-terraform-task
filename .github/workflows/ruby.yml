@@ -62,6 +62,7 @@ jobs:
         env:
           URL: ${{ github.repository }}
           TOKEN: ${{ steps.my-app.outputs.token }}
+          SECRETS_TOKEN: ${{ secrets.PAT }}
         working-directory: '.github/tests'
         run:
           ruby test/script_test.rb
